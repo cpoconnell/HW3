@@ -1,0 +1,165 @@
+---
+title: "ADA_Homework2"
+author: "Caitlin O'Connell"
+date: "9/5/2022"
+output: html_document
+---
+
+## Installing packages
+```{r}
+# install.packages("readr")
+# install.packages("dplyr")
+# install.packages("openxlsx")
+
+# for reading csv file (read_csv())
+library(readr)
+
+# for data management
+library(dplyr)
+
+# for exporting excel files
+library(openxlsx)
+
+```
+
+## Number 1
+Import class one survey data from our Github site (https://github.com/kijohnson/ADA) 
+(The dataset is called ‘Class 1 Survey Fall 2022.csv’), calling the R dataframe that you create C1survey.
+```{r}
+C1survey <- read_csv(
+  "https://raw.githubusercontent.com/kijohnson/ADA/master/Class%201%20Survey%20Fall%202022.csv")
+
+```
+
+## Number 2
+Determine: a. the number of observations (i.e. the number of people who filled out the survey) and 
+b. the number of variables in the dataframe.
+```{r}
+# finding the dimensions of the data set
+dim(C1survey)
+```
+
+a. 42 people filled out the survey (42 observations)
+b. 27 variables in the dataframe
+
+## Number 3
+a. Rename the column variables to something shorter and that is descriptive of what the variable is about 
+(for example like_dogs for the ‘Do you like dogs?’ question variable) and 
+b. Display that they are renamed.
+```{r}
+# renaming the column variables using rename function
+C1survey <- C1survey %>%
+  rename("like_cats" = "Do you like cats?") %>%
+  rename("like_dogs" = "Do you like dogs?") %>%
+  rename("item_desert_island" = 
+           "If you were stranded on a desert island, what is the one item you want to have with you?") %>%
+  rename("favorite_day" = "What is your favorite day of the week?") %>%
+  rename("lark_owl_humbird" = "Are you a lark, an owl, or a hummingbird?") %>%
+  rename("favorite_food" = "What is your favorite food?") %>%
+  rename("favorite_drink" = "What is your favorite drink?") %>%
+  rename("favorite_season" = "What is your favorite season?") %>%
+  rename("favorite_Month" = "What is your favorite Month?") %>%
+  rename("hobby" = "What is one hobby that you enjoy?") %>%
+  rename("degree_program" = "What is your degree program?") %>%
+  rename("specialization" = "What is your primary specialization?") %>%
+  rename("stats_software" = "What is your primary statistical software?") %>%
+  rename("coding_comfort" = "How comfortable are you with coding?") %>%
+  rename("favorite_number" = "What is your favorite number?") %>%
+  rename("home_country" = "What is your home country?") %>%
+  rename("home_state" = "What is your home state?") %>%
+  rename("home_city" = "What is your home city?") %>%
+  rename("education_level" = "What is your highest education level?")
+
+# renaming longer names using the names function
+names(C1survey)[5] <- c("life_slogan")
+names(C1survey)[16] <- c("R_experience")
+names(C1survey)[18:20] <- c("coding_time","learning_goals","interest_area")
+names(C1survey)[22:23] <- c("birth_day","birth_month")
+
+# displaying they are renamed
+View(C1survey)
+```
+
+## Number 4
+Write code to determine and display the number of factor, integer, numerical, and character variables there are in the C1survey dataset.
+
+```{r}
+# determining the type of variables in the dataset
+sapply(C1survey,class)
+```
+
+```{r}
+# defining values to display the number of character, numerical, and factor 
+num_character <- 23
+num_numerical <- 4
+num_factor <- 0
+```
+
+## Number 5
+a. Using code, check the bday and bmonth variables for any unusual or missing values. 
+If you find any, 
+b. describe what you will do with the unusual values in a comment before or immediately following the code that does it, and c. after you have cleaned up any unusual values, find the median bday and month. 
+*Note: please make sure that your bday and month variables are numeric before doing statistics
+
+```{r}
+# converting the bday and month variables to numeric
+C1survey$birth_day <- as.numeric(C1survey$birth_day)
+C1survey$birth_month <- as.numeric(C1survey$birth_month)
+```
+
+```{r}
+# summarizing the two variables (part a)
+summary(C1survey$birth_day)
+summary(C1survey$birth_month)
+```
+
+```{r}
+# I am going to keep the NA's and adding na.rm=TRUE to my code finding the median.
+
+# finding the median birth day and month
+median_bday <- median(C1survey$birth_day, na.rm = TRUE)
+median_bmonth <- median(C1survey$birth_month, na.rm = TRUE)
+
+# displaying medians
+median_bday
+median_bmonth
+```
+
+## Number 6
+a. Create a new variable called bseason that gives the season according to Northern Meteorological season in which respondents were born (winter=12/1 to 2/29, spring=3/1 to 5/31, summer=6/1 to 8/31, fall=9/1 to 11/30). 
+
+b. Using the table function, print a table of Seasons in the columns and bmonths in the rows that allows you to check that the coding is correct 
+
+c. Sum the columns using the addmargins function to answer the question of how many classmates were born in each season? Include your answer in the code.
+```{r}
+# creating a variable called bseason 
+# gives the season in which respondents were born
+
+C1survey<-C1survey %>%
+ mutate(bseason=if_else(birth_month==1| birth_month == 2, "winter", 
+                             if_else(birth_month == 3|birth_month == 4| birth_month == 5, "spring",
+                                     if_else(birth_month == 6|birth_month == 7| birth_month == 8, "summer",
+                                             if_else(birth_month == 9|birth_month==10|birth_month==11, "fall",
+                                                     if_else(birth_month == 12, 
+                                                             "winter", NULL)))))) %>%
+  mutate(bseason = as.factor(bseason))
+summary(C1survey$bseason)
+```
+
+```{r}
+# table of Seasons in columns and birth month in row
+season_table <- table(C1survey$birth_month, C1survey$bseason, useNA = "always")
+```
+
+```{r}
+# Summing the columns to answer the question of how many classmates were born in each season
+addmargins(season_table, margin = seq_along(dim(season_table)), FUN = sum, quiet = TRUE)
+```
+
+## Number 7
+Pick your favorite variable to analyze, come up with a question you want to answer with that variable, generate the code, and provide an answer to your question. Describe what you did using comments (i.e. #’s).
+
+```{r}
+
+```
+
